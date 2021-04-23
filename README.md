@@ -5,9 +5,9 @@
 3. [x] Wie soll die UI gestaltet sein?
 4. [x] Welche Parameter sollen einstellbar sein?
 
-  Team Nummer: 1
-  Name: Landschaft generieren
-  Teilnehmer: Özkan Yanikbas, Sebastian Pfeiffer, Justin Esposito, Raphael Hild
+  Team Nummer: 1 <br>
+  Name: Landschaft generieren <br>
+  Teilnehmer: Özkan Yanikbas, Sebastian Pfeiffer, Justin Esposito, Raphael Hild <br>
 
 1.0 Was soll das Addon genau tun?
 
