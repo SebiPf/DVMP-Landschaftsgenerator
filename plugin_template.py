@@ -8,7 +8,7 @@ bl_info = {
     "description": "",
     "author": "",
     "version": (0, 0, 1),
-    "blender": (2, 9, 2),
+    "blender": (2, 92, 0),
     "location": "View3D > Add > My Object",
     "category": "Object"
 }
