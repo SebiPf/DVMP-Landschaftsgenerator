@@ -5,6 +5,7 @@ bl_info = {
 }
 
 import bpy
+import bmesh
 from random import randint
 
 
@@ -22,6 +23,28 @@ class CreateMesh(bpy.types.Operator):
         obj.scale[0] = 3
         obj.scale[1] = 3
         obj.scale[2] = 3
+
+
+
+        # 3. Add Subdivision Surface Modifier
+        context = bpy.context
+        ob = context.object
+        me = obj.data
+        # New bmesh
+        bm = bmesh.new()
+        # load the mesh
+        bm.from_mesh(me)
+        # subdivide
+        bmesh.ops.subdivide_edges(bm,
+                                edges=bm.edges,
+                                cuts=3,
+                                use_grid_fill=True,
+                                )
+        # Write back to the mesh
+        bm.to_mesh(me)
+        me.update()
+
+
 
         # 2. Add a particle system
         psys = obj.modifiers.new("hair", 'PARTICLE_SYSTEM').particle_system
