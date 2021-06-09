@@ -26,7 +26,7 @@ class CreateMesh(bpy.types.Operator):
 
 
 
-        # 3. Add Subdivision Surface Modifier
+        # 2. Add Subdivision Surface Modifier
         context = bpy.context
         ob = context.object
         me = obj.data
@@ -37,7 +37,7 @@ class CreateMesh(bpy.types.Operator):
         # subdivide
         bmesh.ops.subdivide_edges(bm,
                                 edges=bm.edges,
-                                cuts=3,
+                                cuts=500,
                                 use_grid_fill=True,
                                 )
         # Write back to the mesh
@@ -45,12 +45,27 @@ class CreateMesh(bpy.types.Operator):
         me.update()
 
 
+        # 3. Add Displacement Modifier
+        dispMod = obj.modifiers.new("Displace", type='DISPLACE')
 
-        # 2. Add a particle system
+        tex = bpy.data.textures.new('CloudNoise', type = 'CLOUDS')
+        tex.noise_scale = 1.00
+        tex.noise_basis = 'ORIGINAL_PERLIN'
+        tex.cloud_type = 'COLOR'
+        tex.contrast = 1.050
+        tex.saturation = 0.97
+        tex.intensity = 1.00
+
+        dispMod.texture = tex
+
+
+        # 4. Add a particle system
         psys = obj.modifiers.new("hair", 'PARTICLE_SYSTEM').particle_system
         psys.settings.type = 'HAIR'
-        psys.settings.count = 10000
-        psys.settings.hair_length = 0.3
+        psys.settings.count = 80000
+        psys.settings.hair_length = 0.05
+        psys.settings.child_type = 'INTERPOLATED'
+
 
         return {'FINISHED'}
 
