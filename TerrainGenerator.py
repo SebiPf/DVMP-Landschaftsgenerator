@@ -34,17 +34,16 @@ class CreateMesh(bpy.types.Operator):
         context = bpy.context
         ob = context.object
         me = obj.data
-        # New bmesh
         bm = bmesh.new()
-        # load the mesh
         bm.from_mesh(me)
+
         # subdivide
         bmesh.ops.subdivide_edges(bm,
                                 edges=bm.edges,
                                 cuts=100,
                                 use_grid_fill=True,
                                 )
-        # Write back to the mesh
+
         bm.to_mesh(me)
         me.update()
 
@@ -60,7 +59,9 @@ class CreateMesh(bpy.types.Operator):
         tex.intensity = 1.00
 
         dispMod.texture = tex
+
         #Apply Modifier
+        #TODO Apply erst am Ende?
         bpy.ops.object.modifier_apply(modifier = dispMod.name)
 
     # 4. Place Object on Terrain
@@ -95,7 +96,7 @@ class CreateMesh(bpy.types.Operator):
             new_cube.location = (vertex[0], vertex[1], vertex[2])   #TODO Offset berücksichtigen
             bpy.data.collections["Entities"].objects.link(new_cube) 
 
-    # 5. Add a particle system
+    # 5. Add a particle system ("Grass")
         psys = obj.modifiers.new("hair", 'PARTICLE_SYSTEM').particle_system
         psys.settings.type = 'HAIR'
         psys.settings.count = 15000
@@ -126,7 +127,7 @@ class CreateMesh(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         bpy.data.objects['Cube'].select_set(True)
 
-        #TODO Ecken werden immer mit ausgewählt beim Setzen der Würfel
+        #TODO Ecken werden immer mit ausgewählt beim Setzen der Würfel/ Entities
         bpy.data.objects['basic_cube <Vector (-3.0000, -3.0000, 0.0000)>'].select_set(True)
         bpy.data.objects['basic_cube <Vector (-3.0000, 3.0000, 0.0000)>'].select_set(True)
         bpy.data.objects['basic_cube <Vector (3.0000, -3.0000, 0.0000)>'].select_set(True)
@@ -140,7 +141,8 @@ def add_object_button(self, context):
     self.layout.operator(
         CreateMesh.bl_idname,
         text="Simple Terrain-Mesh",
-         icon="GHOST_ENABLED")
+         icon="WORLD")
+    #Icons: https://docs.blender.org/api/blender_python_api_2_73_release/bpy.types.Node.html
 
 def register():
     bpy.utils.register_class(CreateMesh)
