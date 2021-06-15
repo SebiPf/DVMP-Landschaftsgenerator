@@ -98,12 +98,30 @@ class CreateMesh(bpy.types.Operator):
     # 5. Add a particle system
         psys = obj.modifiers.new("hair", 'PARTICLE_SYSTEM').particle_system
         psys.settings.type = 'HAIR'
-        psys.settings.count = 10000
-        psys.settings.hair_length = 0.25
+        psys.settings.count = 15000
+        psys.settings.hair_length = 0.20
         psys.settings.child_type = 'INTERPOLATED'
 
-   
-   
+    # 6. Create (Node-) Material for Terrain-Plane
+        terrain_material = bpy.data.materials.new(name="TerrainMaterial")
+        terrain_material.use_nodes = True
+        obj.active_material = terrain_material
+
+        nodes = terrain_material.node_tree.nodes
+
+        color_ramp = terrain_material.node_tree.nodes.new("ShaderNodeValToRGB")
+        color_ramp.location = (-300, 300)
+
+        color_ramp.color_ramp.elements.new(0.0)
+        color_ramp.color_ramp.elements[0].color = (0.035, 0.666 , 0.022, 1)
+
+        color_ramp.color_ramp.elements[1].position = (1.0)
+        color_ramp.color_ramp.elements[1].color = (0.662, 0.904, 0.098, 1)
+
+        principled_bsdf = nodes.get("Principled BSDF")
+        terrain_material.node_tree.links.new(principled_bsdf.inputs["Base Color"], color_ramp.outputs["Color"])
+
+
     # TEMP  -   Removing Start-Cube-Object
         bpy.ops.object.select_all(action='DESELECT')
         bpy.data.objects['Cube'].select_set(True)
