@@ -82,8 +82,10 @@ class OBJECT_OT_add_trees(bpy.types.Operator):
         return material  # Return Material
 
     def create_trees(self):
-        # Extract Data from Terrain
+        # Extract Terrain from Scene
+        # (!) Terrain is needed for set Tree Location
         terrain: bpy.types.Object = bpy.data.objects.get('Terrain-Plane')
+
         if terrain:
             # Prepare Materials
             WOOD_MAT = self.create_wood_material()
@@ -95,7 +97,7 @@ class OBJECT_OT_add_trees(bpy.types.Operator):
 
             # Create Trees
             for i in range(self.NUMBER_TREES):
-                # Variables
+                # Randomized Tree Variables
                 length = (
                     self.getRandom(0.45, 0.55),
                     self.getRandom(0.25, 0.35),
@@ -123,10 +125,11 @@ class OBJECT_OT_add_trees(bpy.types.Operator):
                 tree.data.materials.append(WOOD_MAT)
                 leaf.data.materials.append(LEAF_MAT)
 
-                # Set Location
+                # Set Random Tree Location depending on Terrain
                 vert = VERTS[int(self.getRandom(0, len(VERTS)))]
                 tree.location = (vert[0], vert[1], vert[2])
 
+                # Set Random Tree Rotation
                 tree.rotation_euler = (0, 0, radians(self.getRandom(0, 360)))
         else:
             print('Add Terrain first')
