@@ -2,6 +2,7 @@ from math import radians
 import random
 import typing
 import bpy
+import os
 from datetime import datetime
 
 # Blender Plugin Meta-Data
@@ -34,9 +35,8 @@ class OBJECT_OT_add_trees(bpy.types.Operator):
         return random.uniform(min, max)
 
     def create_leaf_material(self) -> bpy.types.Material:
-        # Create Material "Tower Material"
         material: bpy.types.Material = bpy.data.materials.new(
-            "Wood Material"
+            "Leaf Material"
         )
 
         # Activate "Use Node" in Shading View
@@ -46,21 +46,55 @@ class OBJECT_OT_add_trees(bpy.types.Operator):
         nodes_list: typing.List[bpy.types.Node] = material.node_tree.nodes
 
         # Nodes
+        node_texCoord: bpy.types.Node = nodes_list.new("ShaderNodeTexCoord")
+        node_mapping: bpy.types.Node = nodes_list.new("ShaderNodeMapping")
+        node_texImage: bpy.types.Node = nodes_list.new("ShaderNodeTexImage")
+        node_bump: bpy.types.Node = nodes_list.new("ShaderNodeBump")
         node_bsdf: bpy.types.Node = nodes_list["Principled BSDF"]
 
-        # Manipulate Nodes
-        node_bsdf.inputs[0].default_value = (
-            0.0164384,  # R
-            0.0571095,  # G
-            0.00680011,  # B
-            1  # A
+        # Connect Nodes
+        material.node_tree.links.new(
+            node_texCoord.outputs[2],
+            node_mapping.inputs[0]
         )
+        material.node_tree.links.new(
+            node_mapping.outputs[0],
+            node_texImage.inputs[0]
+        )
+        material.node_tree.links.new(
+            node_texImage.outputs[0],
+            node_bsdf.inputs[0]
+        )
+        material.node_tree.links.new(
+            node_texImage.outputs[0],
+            node_bump.inputs[2]
+        )
+        material.node_tree.links.new(
+            node_bump.outputs[0],
+            node_bsdf.inputs[20]
+        )
+
+        # Manipulate Nodes
+        print(node_texImage.inputs)
+        node_mapping.inputs[3].default_value[0] = 3.9
+        node_mapping.inputs[3].default_value[1] = 1.7
+        node_bump.inputs[0].default_value = 0.8
+        node_bump.inputs[1].default_value = 1.0
+
+        # Add Texture
+        image: bpy.types.Image = bpy.data.images.load(
+            os.path.dirname(os.path.realpath(__file__)).replace(
+                'main.blend',
+                'textures\\leaf.jpg'
+            )
+        )
+        node_texImage.image = image
+
         return material  # Return Material
 
     def create_wood_material(self) -> bpy.types.Material:
-        # Create Material "Tower Material"
         material: bpy.types.Material = bpy.data.materials.new(
-            "Wood Material"
+            "Tree Material"
         )
 
         # Activate "Use Node" in Shading View
@@ -70,15 +104,49 @@ class OBJECT_OT_add_trees(bpy.types.Operator):
         nodes_list: typing.List[bpy.types.Node] = material.node_tree.nodes
 
         # Nodes
+        node_texCoord: bpy.types.Node = nodes_list.new("ShaderNodeTexCoord")
+        node_mapping: bpy.types.Node = nodes_list.new("ShaderNodeMapping")
+        node_texImage: bpy.types.Node = nodes_list.new("ShaderNodeTexImage")
+        node_bump: bpy.types.Node = nodes_list.new("ShaderNodeBump")
         node_bsdf: bpy.types.Node = nodes_list["Principled BSDF"]
 
-        # Manipulate Nodes
-        node_bsdf.inputs[0].default_value = (
-            0.051215,  # R
-            0.021901,  # G
-            0.004866,  # B
-            1  # A
+        # Connect Nodes
+        material.node_tree.links.new(
+            node_texCoord.outputs[2],
+            node_mapping.inputs[0]
         )
+        material.node_tree.links.new(
+            node_mapping.outputs[0],
+            node_texImage.inputs[0]
+        )
+        material.node_tree.links.new(
+            node_texImage.outputs[0],
+            node_bsdf.inputs[0]
+        )
+        material.node_tree.links.new(
+            node_texImage.outputs[0],
+            node_bump.inputs[2]
+        )
+        material.node_tree.links.new(
+            node_bump.outputs[0],
+            node_bsdf.inputs[20]
+        )
+
+        # Manipulate Nodes
+        print(node_texImage.inputs)
+        node_mapping.inputs[3].default_value[0] = 3.9
+        node_mapping.inputs[3].default_value[1] = 1.7
+        node_bump.inputs[0].default_value = 0.45
+
+        # Add Texture
+        image: bpy.types.Image = bpy.data.images.load(
+            os.path.dirname(os.path.realpath(__file__)).replace(
+                'main.blend',
+                'textures\\tree.jpg'
+            )
+        )
+        node_texImage.image = image
+
         return material  # Return Material
 
     def create_trees(self):
