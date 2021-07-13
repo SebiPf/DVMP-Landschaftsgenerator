@@ -56,17 +56,6 @@ class Add_Sky(bpy.types.Operator):
     temperatur = 1
     
 
-    # Create a Material
-    def create_material(self) -> bpy.types.Material:
-        # Create Material "New Material"
-        material: bpy.types.Material = bpy.data.materials.new(
-            "New Material"
-        )
-        # ...
-        return material
-
-    
-
     def execute(self, context):
 
         # Parameter für Lichtfarbe
