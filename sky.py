@@ -41,13 +41,13 @@ class Add_Sky(bpy.types.Operator):
         description="strength",
         default=1
     )
-    # temperatur: bpy.props.IntProperty(
-    #     name="temperatur",
-    #     description="temperatur",
-    #     default= 70,
-    #     min = 10,
-    #     max= 120
-    # )
+    temperatur: bpy.props.IntProperty(
+        name="temperatur",
+        description="temperatur",
+        #default= 70,
+        min = 10,
+        max= 120
+    )
     # time: bpy.props.IntProperty(
     #     name="time",
     #     description="time",
@@ -58,9 +58,7 @@ class Add_Sky(bpy.types.Operator):
     daynightcycle: bpy.props.BoolProperty(
         name="daynightcycle",
         description="daynightcycle",
-        default = True
-        
-            
+        default = True    
     )
     temperatur = 1
     
@@ -78,19 +76,106 @@ class Add_Sky(bpy.types.Operator):
 
     def execute(self, context):
 
-
-
-
-
-
-
-
-        
-        
         temp = self.temperatur *100
         redSun: int = 0
         greenSun: int = 0
         blueSun: int = 0
+
+
+
+        bpy.ops.object.light_add(type='SUN', align='WORLD', location=(self.pos_x  ,self.pos_y  ,self.pos_z)  ,scale=(1,1,1),)
+        bpy.context.object.data.energy = self.strength
+        
+
+
+
+
+
+        
+        
+        # bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0,0,0,0)
+
+        # nodes = bpy.data.worlds["World"].node_tree.nodes
+
+        # my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
+        # bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].position = (0.7)
+        # bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].color = (0.18,0.45,1,1)
+        # bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].color = (1,1,1,1)
+        
+        # links =  bpy.data.worlds["World"].node_tree.links
+        # links.new(my_node.outputs[0], nodes["Background"].inputs[0])
+
+
+
+        # my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
+        # links.new(my_node.outputs[0], nodes["ColorRamp"].inputs[0])
+        # bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[2].default_value = 1
+        # bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[1].default_value = 0.1
+
+
+        # my_node: bpy.types.Node = nodes.new("ShaderNodeTexNoise")
+        # links.new(my_node.outputs[0], nodes["Map Range"].inputs[0])
+        # bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[2].default_value = 2.4
+        # bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[3].default_value = 2
+        
+        nodes = bpy.data.worlds["World"].node_tree.nodes
+
+        my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
+        my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
+        my_node: bpy.types.Node = nodes.new("ShaderNodeTexNoise")
+        my_node: bpy.types.Node = nodes.new("ShaderNodeTexVoronoi")
+        bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].position = (0.8)
+        if (self.daynightcycle==True):
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["ColorRamp"])
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Map Range"])
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Noise Texture"])
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Voronoi Texture"])
+            bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0,0,0,0)
+
+            nodes = bpy.data.worlds["World"].node_tree.nodes
+
+            my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
+            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].position = (0.8)
+            links =  bpy.data.worlds["World"].node_tree.links
+            links.new(my_node.outputs[0], nodes["Background"].inputs[0])
+
+            my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
+            links.new(my_node.outputs[0], nodes["ColorRamp"].inputs[0])
+            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[2].default_value = 0
+            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[1].default_value = 0.6
+
+            my_node: bpy.types.Node = nodes.new("ShaderNodeTexVoronoi")
+            links.new(my_node.outputs[0], nodes["Map Range"].inputs[0])
+            bpy.data.worlds["World"].node_tree.nodes["Voronoi Texture"].inputs[2].default_value = 40
+        
+        elif (self.daynightcycle==False):
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Voronoi Texture"])
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Noise Texture"])
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["ColorRamp"])
+            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Map Range"])
+            
+            bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0,0,0,0)
+
+            nodes = bpy.data.worlds["World"].node_tree.nodes
+
+            my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
+            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].position = (0.7)
+            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].color = (0.18,0.45,1,1)
+            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].color = (1,1,1,1)
+            links =  bpy.data.worlds["World"].node_tree.links
+            links.new(my_node.outputs[0], nodes["Background"].inputs[0])
+
+            my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
+            links.new(my_node.outputs[0], nodes["ColorRamp"].inputs[0])
+            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[2].default_value = 1
+            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[1].default_value = 0.1
+
+            my_node: bpy.types.Node = nodes.new("ShaderNodeTexNoise")
+            links.new(my_node.outputs[0], nodes["Map Range"].inputs[0])
+            bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[2].default_value = 2.4
+            bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[3].default_value = 2
+
+        
 
         if temp == 1000:
             redSun = 255
@@ -537,121 +622,7 @@ class Add_Sky(bpy.types.Operator):
             greenSun = 209
             blueSun = 255
 
-        
-            
-
-
-        bpy.ops.object.light_add(type='SUN', align='WORLD', location=(self.pos_x  ,self.pos_y  ,self.pos_z)  ,scale=(1,1,1),)
-        bpy.context.object.data.energy = self.strength
-        
-
-
-
-
-
-        
-        
-        # bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0,0,0,0)
-
-        # nodes = bpy.data.worlds["World"].node_tree.nodes
-
-        # my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
-        # bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].position = (0.7)
-        # bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].color = (0.18,0.45,1,1)
-        # bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].color = (1,1,1,1)
-        
-        # links =  bpy.data.worlds["World"].node_tree.links
-        # links.new(my_node.outputs[0], nodes["Background"].inputs[0])
-
-
-
-        # my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
-        # links.new(my_node.outputs[0], nodes["ColorRamp"].inputs[0])
-        # bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[2].default_value = 1
-        # bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[1].default_value = 0.1
-
-
-        # my_node: bpy.types.Node = nodes.new("ShaderNodeTexNoise")
-        # links.new(my_node.outputs[0], nodes["Map Range"].inputs[0])
-        # bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[2].default_value = 2.4
-        # bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[3].default_value = 2
-        
-        nodes = bpy.data.worlds["World"].node_tree.nodes
-
-        my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
-        my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
-        my_node: bpy.types.Node = nodes.new("ShaderNodeTexNoise")
-        my_node: bpy.types.Node = nodes.new("ShaderNodeTexVoronoi")
-        bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].position = (0.8)
-        if (self.daynightcycle==True):
-            redSun = 195
-            greenSun = 209
-            blueSun = 255
-            print("")
-            temp = 1000
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["ColorRamp"])
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Map Range"])
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Noise Texture"])
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Voronoi Texture"])
-            bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0,0,0,0)
-
-            nodes = bpy.data.worlds["World"].node_tree.nodes
-
-            my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
-            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].position = (0.8)
-            links =  bpy.data.worlds["World"].node_tree.links
-            links.new(my_node.outputs[0], nodes["Background"].inputs[0])
-
-
-
-            my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
-            links.new(my_node.outputs[0], nodes["ColorRamp"].inputs[0])
-            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[2].default_value = 0
-            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[1].default_value = 0.6
-
-
-            my_node: bpy.types.Node = nodes.new("ShaderNodeTexVoronoi")
-            links.new(my_node.outputs[0], nodes["Map Range"].inputs[0])
-            bpy.data.worlds["World"].node_tree.nodes["Voronoi Texture"].inputs[2].default_value = 40
-        
-        elif (self.daynightcycle==False):
-            redSun = 255
-            greenSun = 56
-            blueSun = 0
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Voronoi Texture"])
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Noise Texture"])
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["ColorRamp"])
-            bpy.data.worlds["World"].node_tree.nodes.remove(bpy.data.worlds["World"].node_tree.nodes["Map Range"])
-            
-            bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0,0,0,0)
-
-            nodes = bpy.data.worlds["World"].node_tree.nodes
-
-            my_node: bpy.types.Node = nodes.new("ShaderNodeValToRGB")
-            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].position = (0.7)
-            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[1].color = (0.18,0.45,1,1)
-            bpy.data.worlds["World"].node_tree.nodes["ColorRamp"].color_ramp.elements[0].color = (1,1,1,1)
-            
-            links =  bpy.data.worlds["World"].node_tree.links
-            links.new(my_node.outputs[0], nodes["Background"].inputs[0])
-
-
-
-            my_node: bpy.types.Node = nodes.new("ShaderNodeMapRange")
-            links.new(my_node.outputs[0], nodes["ColorRamp"].inputs[0])
-            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[2].default_value = 1
-            bpy.data.worlds["World"].node_tree.nodes["Map Range"].inputs[1].default_value = 0.1
-
-
-            my_node: bpy.types.Node = nodes.new("ShaderNodeTexNoise")
-            links.new(my_node.outputs[0], nodes["Map Range"].inputs[0])
-            bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[2].default_value = 2.4
-            bpy.data.worlds["World"].node_tree.nodes["Noise Texture"].inputs[3].default_value = 2
-
         bpy.context.object.data.color = (redSun,greenSun,blueSun)
-
-
-
 
         # ...
         return {'FINISHED'}
