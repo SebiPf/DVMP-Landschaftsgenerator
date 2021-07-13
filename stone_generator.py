@@ -1,6 +1,7 @@
 from math import radians
 import os
 import random
+import typing
 import bpy
 from bpy import context, data, ops
 from datetime import datetime
@@ -122,12 +123,56 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
                 mat = bpy.data.materials.new(name="New_Stone_Mat")
                 mat.use_nodes = True
                 bsdf = mat.node_tree.nodes["Principled BSDF"]
-                texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-                texImage.image = bpy.data.images.load(os.path.dirname(os.path.realpath(__file__)).replace(
+                
+                image = bpy.data.images.load(os.path.dirname(os.path.realpath(__file__)).replace(
                         'main.blend',
                         'textures\\rock.jpg'
                     ))
-                mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
+
+                # Activate "Use Node" in Shading View
+                mat.use_nodes = True
+
+                # Node List
+                nodes_list: typing.List[bpy.types.Node] = mat.node_tree.nodes
+
+                # Nodes
+                node_texCoord: bpy.types.Node = nodes_list.new("ShaderNodeTexCoord")
+                node_mapping: bpy.types.Node = nodes_list.new("ShaderNodeMapping")
+                node_texImage: bpy.types.Node = nodes_list.new("ShaderNodeTexImage")
+                node_bump: bpy.types.Node = nodes_list.new("ShaderNodeBump")
+                node_bsdf: bpy.types.Node = nodes_list["Principled BSDF"]
+
+                mat.node_tree.links.new(bsdf.inputs['Base Color'], node_texImage.outputs['Color'])
+                node_texImage.image = image
+                
+                # Connect Nodes
+                mat.node_tree.links.new(
+                    node_texCoord.outputs[2],
+                    node_mapping.inputs[0]
+                )
+                mat.node_tree.links.new(
+                    node_mapping.outputs[0],
+                    node_texImage.inputs[0]
+                )
+                mat.node_tree.links.new(
+                    node_texImage.outputs[0],
+                    node_bsdf.inputs[0]
+                )
+                mat.node_tree.links.new(
+                    node_texImage.outputs[0],
+                    node_bump.inputs[2]
+                )
+                mat.node_tree.links.new(
+                    node_bump.outputs[0],
+                    node_bsdf.inputs[20]
+                )
+                
+                node_bump.inputs[0].default_value = 0.592
+                node_bump.inputs[1].default_value = 2.6
+
+                node_mapping.inputs[3].default_value[0] = 7.2
+                node_mapping.inputs[3].default_value[1] = 8.9
+
 
                 ob = context.view_layer.objects.active
 
