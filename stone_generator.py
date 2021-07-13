@@ -1,9 +1,9 @@
-import bpy
+from math import radians
+import os
 import random
-
-bpy.ops.object.select_all(action='SELECT') # selektiert alle Objekte
-bpy.ops.object.delete(use_global=False, confirm=False) # löscht selektierte objekte
-bpy.ops.outliner.orphans_purge() # löscht überbleibende Meshdaten etc.
+import bpy
+from bpy import context, data, ops
+from datetime import datetime
 
 # Blender Plugin Meta-Data
 bl_info = {
@@ -29,26 +29,6 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
         default=1
     )
 
-    # define grid size
-    grid_size_x: bpy.props.IntProperty(
-        name="Grid Size X",
-        description="Changes the X Value of the Grid Size",
-        default=4
-    )
-    
-    grid_size_y: bpy.props.IntProperty(
-        name="Grid Size Y",
-        description="Changes the Y Value of the Grid Size",
-        default=8
-    )
-
-    # define grid spacing
-    grid_spacing: bpy.props.IntProperty(
-        name="Grid Spacing",
-        description="Changes the Grid Spacing",
-        default=4
-    )
-
     # define min and max size of stones
     size_min: bpy.props.FloatProperty(
         name="Size Min",
@@ -62,90 +42,118 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
         default=2.5
     )
 
-    # define grid locactions
-    grid_loc_x: bpy.props.IntProperty(
-        name="Grid Loc X",
-        description="Changes the X Value of the Grid Location",
-        default=0
-    )
+    def getRandom(self, min: float, max: float) -> float:
+        seed = datetime.now().timestamp()
+        random.seed(seed)
+        return random.uniform(min, max)
 
-    grid_loc_y: bpy.props.IntProperty(
-        name="Grid Loc Y",
-        description="Changes the Y Value of the Grid Location",
-        default=0
-    )
-
+    #  method for generating stone
     def generate_stone(self):
-        size_x = 0
-        size_y = 0
-        size_z = 0
+        
+        # Extract Terrain from Scene
+        # (!) Terrain is needed for set Stone Location
+        terrain: bpy.types.Object = bpy.data.objects.get('Terrain-Plane')
 
-        for row in range(self.grid_size_x):
-            for column in range(self.grid_size_y):
+        if terrain:
+
+            # Extract Vertices from Terrain
+            VERTS = [(terrain.matrix_world @ v.co)
+                     for v in terrain.data.vertices]
+
+            # Create Stones
+            for i in range(self.amount_of_stones):
+                size_x = 0
+                size_y = 0
+                size_z = 0
+
+                
                 # generate random sizes
                 size_x = random.uniform(self.size_min, self.size_max)
                 size_y = random.uniform(self.size_min, self.size_max)
-                size_z = random.uniform(self.size_min, self.size_max) - 0.2
+                size_z = random.uniform(self.size_min, self.size_max) - 0.2        
 
-                # compute min and max values for positioning stone in grid
-                min_grid_loc = min(self.grid_size_x, self.grid_size_y)
-                max_grid_loc = max(self.grid_size_x, self.grid_size_y)
+                # create cube
+                bpy.ops.mesh.primitive_cube_add(enter_editmode=False, align='WORLD', scale=(1, 1, 1))
 
-                # position stone randomly in the grid
-                self.grid_loc_x = random.randint(min_grid_loc, max_grid_loc)
-                self.grid_loc_y = random.randint(min_grid_loc, max_grid_loc)
+                # make a base cube
+                base_cube = bpy.data.objects['Cube']
+                base_cube.name = 'stone'
 
-        # create cube
-        bpy.ops.mesh.primitive_cube_add(enter_editmode=False, align='WORLD', location=(self.grid_loc_x * self.grid_spacing, self.grid_loc_y * self.grid_spacing, 0), scale=(1, 1, 1))
+                # increase size of cube
+                bpy.context.object.scale = (size_x, size_y, size_z)
 
-        # make a base cube
-        base_cube = bpy.data.objects['Cube']
-        base_cube.name = 'Base_Cube'
+                # enter edit mode
+                bpy.ops.object.editmode_toggle()
 
-        # increase size of cube
-        bpy.context.object.scale = (size_x, size_y, size_z)
+                # bevel cube
+                bpy.ops.mesh.bevel(offset=0.514808, offset_pct=0, affect='EDGES')
 
-        # enter edit mode
-        bpy.ops.object.editmode_toggle()
+                # set mode to object mode
+                bpy.ops.object.mode_set(mode='OBJECT')
 
-        # bevel cube
-        bpy.ops.mesh.bevel(offset=0.514808, offset_pct=0, affect='EDGES')
+                # add subdivision modifier
+                bpy.ops.object.modifier_add(type='SUBSURF')
 
-        # set mode to object mode
-        bpy.ops.object.mode_set(mode='OBJECT')
+                # increase subdivisions
+                bpy.context.object.modifiers["Subdivision"].levels = 4
+                bpy.context.object.modifiers["Subdivision"].render_levels = 4
 
-        # add subdivision modifier
-        bpy.ops.object.modifier_add(type='SUBSURF')
+                # make texture
+                bpy.data.textures.new("Voronoi", 'VORONOI')
 
-        # increase subdivisions
-        bpy.context.object.modifiers["Subdivision"].levels = 4
-        bpy.context.object.modifiers["Subdivision"].render_levels = 4
+                # make modifier
+                modifier = base_cube.modifiers.new(name="Displace", type='DISPLACE')
+                modifier.texture = bpy.data.textures['Voronoi']
 
-        # make texture
-        bpy.data.textures.new("Voronoi", 'VORONOI')
+                # increase size
+                bpy.data.textures["Voronoi"].noise_scale = 0.92
 
-        # make modifier
-        modifier = base_cube.modifiers.new(name="Displace", type='DISPLACE')
-        modifier.texture = bpy.data.textures['Voronoi']
+                # reduce contrast of texture
+                bpy.data.textures["Voronoi"].contrast = 0.61
 
-        # increase size
-        bpy.data.textures["Voronoi"].noise_scale = 0.92
+                # add decimate modifier
+                bpy.ops.object.modifier_add(type='DECIMATE')
 
-        # reduce contrast of texture
-        bpy.data.textures["Voronoi"].contrast = 0.61
+                # reduce ratio
+                bpy.context.object.modifiers["Decimate"].ratio = 0.256579
+                
+                
+                # Add texture and material
+                mat = bpy.data.materials.new(name="New_Stone_Mat")
+                mat.use_nodes = True
+                bsdf = mat.node_tree.nodes["Principled BSDF"]
+                texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
+                texImage.image = bpy.data.images.load(os.path.dirname(os.path.realpath(__file__)).replace(
+                        'main.blend',
+                        'textures\\rock.jpg'
+                    ))
+                mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
 
-        # add decimate modifier
-        bpy.ops.object.modifier_add(type='DECIMATE')
+                ob = context.view_layer.objects.active
 
-        # reduce ratio
-        bpy.context.object.modifiers["Decimate"].ratio = 0.256579
+                # Assign it to object
+                if ob.data.materials:
+                    ob.data.materials[0] = mat
+                else:
+                    ob.data.materials.append(mat)
+
+                # Context for Stone
+
+                if base_cube:
+                    base_cube.name = 'stone.' + str(i)
+
+                # Set Random Stone Location depending on Terrain
+                vert = VERTS[int(self.getRandom(0, len(VERTS)))]
+                base_cube.location = (vert[0], vert[1], vert[2])
+
+                # Set Random Stone Rotation
+                base_cube.rotation_euler = (0, 0, radians(self.getRandom(0, 360)))
+        else:
+            print('Add Terrain first')
+        
 
     def execute(self, context):
-        count = 0
-        while count < self.amount_of_stones:
-            self.generate_stone()
-            count += 1
-        
+        self.generate_stone()
 
         return { 'FINISHED' }
 
