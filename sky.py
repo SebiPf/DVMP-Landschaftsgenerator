@@ -83,7 +83,7 @@ class Add_Sky(bpy.types.Operator):
 
 
 
-        bpy.ops.object.light_add(type='SUN', align='WORLD', location=(self.pos_x  ,self.pos_y  ,self.pos_z)  ,scale=(1,1,1),)
+        bpy.ops.object.light_add(type='POINT', align='WORLD', location=(self.pos_x  ,self.pos_y  ,self.pos_z)  ,scale=(1,1,1))
         bpy.context.object.data.energy = self.strength
         
 
