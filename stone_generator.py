@@ -23,24 +23,25 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
     bl_label = "Add Stone"
     bl_options = {"REGISTER", "UNDO"}
 
-    # define amount of stones that should be generated
+    # defines the amount of stones to be generated
     amount_of_stones: bpy.props.IntProperty(
         name="Amount Of Stones",
         description="Changes the amount of stones",
         default=1
     )
 
-    # define min and max size of stones
+    # defines the minimum size of a stone
     size_min: bpy.props.FloatProperty(
-        name="Size Min",
-        description="Changes the Min Size of a Stone",
+        name="Minimum size of a stone",
+        description="Changes the minimum size of a stone",
         default=0.4
     )
 
+    # defines the maximum size of a stone
     size_max: bpy.props.FloatProperty(
-        name="Size Max",
-        description="Changes the Max Size of a Stone",
-        default=2.5
+        name="Maximum size of a stone",
+        description="Changes the maximum size of a stone",
+        default=1.2
     )
 
     def getRandom(self, min: float, max: float) -> float:
@@ -48,7 +49,7 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
         random.seed(seed)
         return random.uniform(min, max)
 
-    #  method for generating stone
+    # method to generate a stone
     def generate_stone(self):
         
         # Extract Terrain from Scene
@@ -61,13 +62,13 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
             VERTS = [(terrain.matrix_world @ v.co)
                      for v in terrain.data.vertices]
 
-            # Create Stones
+            # create stones
             for i in range(self.amount_of_stones):
+                # set default values for x-, y-, z- size
                 size_x = 0
                 size_y = 0
                 size_z = 0
 
-                
                 # generate random sizes
                 size_x = random.uniform(self.size_min, self.size_max)
                 size_y = random.uniform(self.size_min, self.size_max)
@@ -76,7 +77,7 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
                 # create cube
                 bpy.ops.mesh.primitive_cube_add(enter_editmode=False, align='WORLD', scale=(1, 1, 1))
 
-                # make a base cube
+                # make a base cube and set name to 'stone'
                 base_cube = bpy.data.objects['Cube']
                 base_cube.name = 'stone'
 
@@ -119,11 +120,12 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
                 bpy.context.object.modifiers["Decimate"].ratio = 0.256579
                 
                 
-                # Add texture and material
+                # create new material
                 mat = bpy.data.materials.new(name="New_Stone_Mat")
                 mat.use_nodes = True
                 bsdf = mat.node_tree.nodes["Principled BSDF"]
                 
+                # load image texture
                 image = bpy.data.images.load(os.path.dirname(os.path.realpath(__file__)).replace(
                         'main.blend',
                         'textures\\rock.jpg'
@@ -173,17 +175,15 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
                 node_mapping.inputs[3].default_value[0] = 7.2
                 node_mapping.inputs[3].default_value[1] = 8.9
 
-
                 ob = context.view_layer.objects.active
 
-                # Assign it to object
+                # assign material to object
                 if ob.data.materials:
                     ob.data.materials[0] = mat
                 else:
                     ob.data.materials.append(mat)
 
                 # Context for Stone
-
                 if base_cube:
                     base_cube.name = 'stone.' + str(i)
 
@@ -194,9 +194,9 @@ class OBJECT_OT_add_stone(bpy.types.Operator):
                 # Set Random Stone Rotation
                 base_cube.rotation_euler = (0, 0, radians(self.getRandom(0, 360)))
         else:
-            print('Add Terrain first')
+            print('Add Terrain first.')
         
-
+    # define execute method
     def execute(self, context):
         self.generate_stone()
 
@@ -210,16 +210,13 @@ def menu_layout(self, context):
         icon="META_PLANE"  # Icon
     )
 
-
 def register():
     bpy.utils.register_class(OBJECT_OT_add_stone)
     bpy.types.VIEW3D_MT_add.append(menu_layout)
 
-
 def unregister():
     bpy.utils.unregister_class(OBJECT_OT_add_stone)
     bpy.types.VIEW3D_MT_add.remove(menu_layout)
-
 
 if __name__ == "__main__":
     register()
