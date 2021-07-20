@@ -64,7 +64,9 @@ class CreateMesh(bpy.types.Operator):
         #TODO Apply erst am Ende?
         bpy.ops.object.modifier_apply(modifier = dispMod.name)
 
+        
     # 4. Place Object on Terrain
+        """
         bpy.data.collections.new("Entities")
         bpy.context.scene.collection.children.link(bpy.data.collections["Entities"])
 
@@ -95,6 +97,7 @@ class CreateMesh(bpy.types.Operator):
             new_cube = bpy.data.objects.new(name=name, object_data=basic_cube.data)
             new_cube.location = (vertex[0], vertex[1], vertex[2])   #TODO Offset berücksichtigen
             bpy.data.collections["Entities"].objects.link(new_cube) 
+        """
 
     # 5. Add a particle system ("Grass")
         psys = obj.modifiers.new("hair", 'PARTICLE_SYSTEM').particle_system
@@ -122,8 +125,9 @@ class CreateMesh(bpy.types.Operator):
         principled_bsdf = nodes.get("Principled BSDF")
         terrain_material.node_tree.links.new(principled_bsdf.inputs["Base Color"], color_ramp.outputs["Color"])
 
-
+        
     # TEMP  -   Removing Start-Cube-Object
+        """
         bpy.ops.object.select_all(action='DESELECT')
         bpy.data.objects['Cube'].select_set(True)
 
@@ -132,7 +136,8 @@ class CreateMesh(bpy.types.Operator):
         bpy.data.objects['basic_cube <Vector (-3.0000, 3.0000, 0.0000)>'].select_set(True)
         bpy.data.objects['basic_cube <Vector (3.0000, -3.0000, 0.0000)>'].select_set(True)
         bpy.data.objects['basic_cube <Vector (3.0000, 3.0000, 0.0000)>'].select_set(True)
-        bpy.ops.object.delete() 
+        bpy.ops.object.delete()
+        """
 
         return {'FINISHED'}
 
