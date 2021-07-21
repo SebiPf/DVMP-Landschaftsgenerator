@@ -24,6 +24,17 @@ class OBJECT_OT_gen_landscape(bpy.types.Operator):
     bl_label = "Generate Landscape"
     bl_options = {"REGISTER", "UNDO"}
 
+    SIZE_X: bpy.props.IntProperty(
+        name="Landscape X-Scale",
+        description="",
+        default=5
+    )
+    SIZE_Y: bpy.props.IntProperty(
+        name="Landscape Y-Scale",
+        description="",
+        default=5
+    )
+
     TREES: bpy.props.BoolProperty(
         name="Create Trees",
         description="",
@@ -117,8 +128,8 @@ class OBJECT_OT_gen_landscape(bpy.types.Operator):
             object.name = 'Terrain-Plane'
 
         obj = bpy.data.objects['Terrain-Plane']
-        obj.scale[0] = 3
-        obj.scale[1] = 3
+        obj.scale[0] = self.SIZE_X
+        obj.scale[1] = self.SIZE_Y
         obj.scale[2] = 3
 
         # 2. Add Subdivision Surface Modifier
@@ -369,8 +380,8 @@ class OBJECT_OT_gen_landscape(bpy.types.Operator):
             for i in range(self.NUMBER_TREES):
                 # Randomized Tree Variables
                 length = (
-                    self.getRandom(0.45, 0.55),
-                    self.getRandom(0.25, 0.35),
+                    self.getRandom(0.4, 0.6),
+                    self.getRandom(0.2, 0.4),
                     0.0,
                     0.0
                 )
